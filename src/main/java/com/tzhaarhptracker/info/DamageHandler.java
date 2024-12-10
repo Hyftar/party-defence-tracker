@@ -623,7 +623,6 @@ public class DamageHandler extends InfoHandler
 				break;
 		}
 
-		System.out.println((int) Math.round(damage / modifier / configModifier));
 		//Rounding at end more accurate
 		return (int) Math.round(damage / modifier / configModifier);
 	}
