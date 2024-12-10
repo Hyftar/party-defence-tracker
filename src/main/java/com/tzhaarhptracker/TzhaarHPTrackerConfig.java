@@ -332,8 +332,29 @@ public interface TzhaarHPTrackerConfig extends Config
 		return 1;
 	}
 
+	// For Raging Echoes League
+	@ConfigItem(
+		position = 1,
+		keyName = "equilibriumRelic",
+		name = "Equilibrium",
+		description = "The bonus flat xp obtained from the Equilibrium relic in the Raging Echoes League that should be factored when calculating the hit",
+		section = xpSection
+	)
+	default boolean equilibriumRelic() { return false; }
+
+	// For Raging Echoes League
+	@Range(min = 32, max = 2277)
+	@ConfigItem(
+			position = 2,
+			keyName = "totalLevel",
+			name = "Total Level",
+			description = "Total level used to calculate equilibrium xp drops",
+			section = xpSection
+	)
+	default int totalLevel() { return 2277; }
+
 	//------------------------------------------------------------//
-	// XP Settings
+	// Reminder Settings
 	//------------------------------------------------------------//
 	@ConfigSection(
 		name = "Reminder Settings",

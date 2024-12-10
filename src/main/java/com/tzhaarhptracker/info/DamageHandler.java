@@ -543,6 +543,12 @@ public class DamageHandler extends InfoHandler
 		}
 	}
 
+	// For Raging Echoes League
+	private double calculateEquilibriumXpDrop(int totalLevel)
+	{
+		return totalLevel / 10.0d;
+	}
+
 	public int calculateHitOnNpc(int id, Skill skill, int xpDiff, AttackStyle attackStyle, WeaponStyle weaponStyle)
 	{
 		double modifier = 1.0;
@@ -555,9 +561,17 @@ public class DamageHandler extends InfoHandler
 		return calculateHit(skill, xpDiff, attackStyle, weaponStyle, modifier, config.xpMultiplier());
 	}
 
+
 	private int calculateHit(Skill skill, int xpDiff, AttackStyle attackStyle, WeaponStyle weaponStyle, double modifier, double configModifier)
 	{
 		double damage = 0;
+
+
+		// For Raging Echoes League
+		if (config.equilibriumRelic())
+		{
+			xpDiff -= calculateEquilibriumXpDrop(config.totalLevel());
+		}
 
 		if (Math.abs(configModifier) < 1e-6)
 		{
@@ -609,6 +623,7 @@ public class DamageHandler extends InfoHandler
 				break;
 		}
 
+		System.out.println((int) Math.round(damage / modifier / configModifier));
 		//Rounding at end more accurate
 		return (int) Math.round(damage / modifier / configModifier);
 	}
