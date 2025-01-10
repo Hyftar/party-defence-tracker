@@ -99,10 +99,18 @@ public interface DefenceTrackerConfig extends Config
 	}
 
 	@ConfigItem(
+			keyName = "shadowBarrage",
+			name = "Show Shadow Barrage",
+			description = "Displays an infobox when you successfully land a shadow barrage whilst wearing the shadow ancient sceptre",
+			position = 7
+	)
+	default boolean shadowBarrage() { return true; }
+
+	@ConfigItem(
 		keyName = "redKeris",
 		name = "Show Red Keris",
 		description = "Displays an infobox when you successfully land a Red Keris (Corruption) special attack",
-		position = 7
+		position = 8
 	)
 	default boolean redKeris()
 	{
