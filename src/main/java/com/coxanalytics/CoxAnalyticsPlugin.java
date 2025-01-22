@@ -42,6 +42,7 @@ import net.runelite.api.GameState;
 import net.runelite.api.NPC;
 import net.runelite.api.NpcID;
 import net.runelite.api.Point;
+import net.runelite.api.VarPlayer;
 import net.runelite.api.Varbits;
 import net.runelite.api.events.ActorDeath;
 import net.runelite.api.events.ChatMessage;
@@ -411,8 +412,8 @@ public class CoxAnalyticsPlugin extends Plugin
 				else if (msg.startsWith(RAID_COMPLETE_MESSAGE))
 				{
 					int totalPoints = client.getVarbitValue(Varbits.TOTAL_POINTS);
-					int personalPoints = client.getVarbitValue(Varbits.PERSONAL_POINTS);
-					int scale = client.getVarbitValue(Varbits.RAID_PARTY_SIZE);
+					int personalPoints = client.getVarpValue(VarPlayer.RAIDS_PERSONAL_POINTS);
+					int scale = client.getVarbitValue(CoxAnalyticsVarbits.RAID_PARTY_SIZE);
 
 					endTicks = coxTimeVar();
 					getFloorTimes();
@@ -478,7 +479,7 @@ public class CoxAnalyticsPlugin extends Plugin
 
 	private int getOlmPhases()
 	{
-		int scale = client.getVarbitValue(Varbits.RAID_PARTY_SIZE);
+		int scale = client.getVarbitValue(CoxAnalyticsVarbits.RAID_PARTY_SIZE);
 		return 3 + (scale / 8);
 	}
 
