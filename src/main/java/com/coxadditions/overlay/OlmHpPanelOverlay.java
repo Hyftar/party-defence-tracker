@@ -2,6 +2,7 @@ package com.coxadditions.overlay;
 
 import com.coxadditions.CoxAdditionsConfig;
 import com.coxadditions.CoxAdditionsPlugin;
+import com.coxadditions.CoxAdditionsVarbits;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -48,7 +49,7 @@ public class OlmHpPanelOverlay extends OverlayPanel
 				.build());
 
 			//Solo Hand HP
-			if (client.getVarbitValue(Varbits.RAID_PARTY_SIZE) == 1)
+			if (client.getVarbitValue(CoxAdditionsVarbits.RAID_PARTY_SIZE) == 1)
 			{
 				if (mageHand != null && plugin.getMageHandHp() >= 0)
 				{

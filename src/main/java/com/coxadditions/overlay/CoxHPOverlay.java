@@ -2,6 +2,7 @@ package com.coxadditions.overlay;
 
 import com.coxadditions.CoxAdditionsConfig;
 import com.coxadditions.CoxAdditionsPlugin;
+import com.coxadditions.CoxAdditionsVarbits;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -45,7 +46,7 @@ public class CoxHPOverlay extends Overlay
 
 		if (plugin.isInRaid() && client.getLocalPlayer() != null)
 		{
-			boolean solo = client.getVarbitValue(Varbits.RAID_PARTY_SIZE) == 1;
+			boolean solo = client.getVarbitValue(CoxAdditionsVarbits.RAID_PARTY_SIZE) == 1;
 
 			if (plugin.room() == InstanceTemplates.RAIDS_MUTTADILES)
 			{
