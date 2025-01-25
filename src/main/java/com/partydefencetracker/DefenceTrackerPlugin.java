@@ -81,6 +81,7 @@ import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import net.runelite.client.util.ColorUtil;
 import net.runelite.client.util.Text;
+import org.apache.commons.lang3.ObjectUtils;
 
 @PluginDescriptor(
 	name = "Party Defence Tracker",
@@ -184,7 +185,7 @@ public class DefenceTrackerPlugin extends Plugin
 	}};
 
 	private final Set<String> coxBosses = new HashSet<>(List.of("Abyssal portal", "Deathly mage", "Deathly ranger", "Great Olm", "Great Olm (Left claw)", "Great Olm (Right claw", "Ice demon", "Skeletal Mystic", "Tekton", "Vasa Nistirio", "Lizardman shaman"));
-  private final Set<String> coxBossesSpecialOffensiveScaling = new HashSet<>(List.of("Abyssal portal", "Deathly ranger"));
+  	private final Set<String> coxBossesSpecialOffensiveScaling = new HashSet<>(List.of("Abyssal portal", "Deathly ranger"));
 
 	@Provides
 	DefenceTrackerConfig provideConfig(ConfigManager configManager)
