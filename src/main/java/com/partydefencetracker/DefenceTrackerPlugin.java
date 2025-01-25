@@ -130,6 +130,10 @@ public class DefenceTrackerPlugin extends Plugin
 	private DefenceInfoBox box = null;
 	private VulnerabilityInfoBox vulnBox = null;
 	private SpritePixels vuln = null;
+	private ShadowBarrageInfoBox shadowBarrageBox = null;
+	private SpritePixels shadowBarrage = null;
+	private boolean shadowBarrageHit = false;
+
 	private RedKerisInfoBox redKerisBox = null;
 	@Getter
 	private int redKerisTicks = 0;
@@ -204,6 +208,7 @@ public class DefenceTrackerPlugin extends Plugin
 		infoBoxManager.removeInfoBox(box);
 		infoBoxManager.removeInfoBox(vulnBox);
 		infoBoxManager.removeInfoBox(redKerisBox);
+		infoBoxManager.removeInfoBox(shadowBarrageBox);
 		boss = "";
 		bossIndex = 0;
 		bossDef = -1;
@@ -212,6 +217,9 @@ public class DefenceTrackerPlugin extends Plugin
 		vuln = null;
 		redKerisBox = null;
 		redKerisTicks = 0;
+		shadowBarrageBox = null;
+		shadowBarrage = null;
+		shadowBarrageHit = false;
 		bloatDown = false;
 		queuedNpc = null;
 	}
@@ -435,6 +443,25 @@ public class DefenceTrackerPlugin extends Plugin
 							redKerisBox.setTooltip(ColorUtil.wrapWithColorTag(e.getBoss(), Color.WHITE));
 							infoBoxManager.addInfoBox(redKerisBox);
 						}
+					} else if (e.getWeapon().equals("shadowBarrage") && !shadowBarrageHit)
+					{
+						if (!boss.equalsIgnoreCase(e.getBoss()) || (e.getBoss().contains("Tekton") && !boss.equalsIgnoreCase("Tekton")))
+						{
+							baseDefence(e.getBoss(), e.getIndex());
+							calculateQueue(e.getIndex());
+						}
+
+						if (config.shadowBarrage())
+						{
+							infoBoxManager.removeInfoBox(shadowBarrageBox);
+							shadowBarrageBox = new ShadowBarrageInfoBox(itemManager.getImage(ItemID.SHADOW_ANCIENT_SCEPTRE), this);
+							shadowBarrageBox.setTooltip(ColorUtil.wrapWithColorTag(e.getBoss(), Color.WHITE));
+							infoBoxManager.addInfoBox(shadowBarrageBox);
+						}
+						shadowBarrageHit = true; // non-stackable reduction
+						bossDef -= bossDef * .15;
+
+						updateDefInfobox();
 					}
 				}
 			}
@@ -498,15 +525,40 @@ public class DefenceTrackerPlugin extends Plugin
 	@Subscribe
 	public void onGraphicChanged(GraphicChanged e)
 	{
-		//85 = splash
-		if (e.getActor() instanceof NPC && e.getActor().getName() != null && e.getActor().hasSpotAnim(169) && partyService.isInParty())
+		if (!(e.getActor() instanceof NPC) || e.getActor().getName() == null || !partyService.isInParty())
 		{
-			if (BossInfo.getBoss(e.getActor().getName()) != null)
+			return;
+		}
+
+		NPC npc = (NPC) e.getActor();
+
+		BossInfo bossName = BossInfo.getBoss(npc.getName());
+		if (bossName == null)
+		{
+			return;
+		}
+
+		final int VULNERABILITY_SPOT_ANIM = 169;
+		final int SHADOW_SCEPTRE_SPOT_ANIM = 383;
+		final int SHADOW_SCEPTRE_ID = ItemID.SHADOW_ANCIENT_SCEPTRE_28266;
+
+		if (npc.hasSpotAnim(VULNERABILITY_SPOT_ANIM))
+		{
+			partyService.send(new DefenceTrackerUpdate(npc.getName(), npc.getIndex(), true, client.getWorld(), "vuln"));
+		}
+		else if (npc.hasSpotAnim(SHADOW_SCEPTRE_SPOT_ANIM))
+		{
+			int equippedWeapon = ObjectUtils.defaultIfNull(
+					client.getLocalPlayer().getPlayerComposition().getEquipmentId(KitType.WEAPON), -1
+			);
+			if (equippedWeapon == SHADOW_SCEPTRE_ID)
 			{
-				partyService.send(new DefenceTrackerUpdate(e.getActor().getName(), ((NPC) e.getActor()).getIndex(), true, client.getWorld(), "vuln"));
+				partyService.send(new DefenceTrackerUpdate(npc.getName(), npc.getIndex(), true, client.getWorld(), "shadowBarrage"));
 			}
 		}
 	}
+
+
 
 	@Subscribe
 	protected void onGameStateChanged(GameStateChanged e)
