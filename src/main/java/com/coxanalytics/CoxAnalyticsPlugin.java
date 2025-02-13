@@ -52,8 +52,8 @@ import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ScriptPostFired;
 import net.runelite.api.events.VarbitChanged;
+import net.runelite.api.widgets.ComponentID;
 import net.runelite.api.widgets.Widget;
-import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.RuneLite;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatColorType;
@@ -501,7 +501,7 @@ public class CoxAnalyticsPlugin extends Plugin
 			//Needs to run the script, otherwise it only updates the time every ~4 seconds
 			client.runScript(2289, 0, 0, 0);
 
-			Widget widget = client.getWidget(WidgetInfo.RAIDS_POINTS_INFOBOX);
+			Widget widget = client.getWidget(ComponentID.RAIDS_POINTS_INFOBOX);
 			Point mousePosition = client.getMouseCanvasPosition();
 
 			if (widget != null && !widget.isHidden() && widget.getBounds().contains(mousePosition.getX(), mousePosition.getY()))
@@ -519,7 +519,7 @@ public class CoxAnalyticsPlugin extends Plugin
 	{
 		if (event.getScriptId() == COX_POINT_WIDGET_SCRIPT && inCox)
 		{
-			Widget widget = client.getWidget(WidgetInfo.RAIDS_POINTS_INFOBOX);
+			Widget widget = client.getWidget(ComponentID.RAIDS_POINTS_INFOBOX);
 
 			if (widget != null && !widget.isHidden())
 			{
@@ -532,7 +532,7 @@ public class CoxAnalyticsPlugin extends Plugin
 	{
 		if (client.getGameState() == GameState.LOGGED_IN && inCox)
 		{
-			final Widget widget = client.getWidget(WidgetInfo.RAIDS_POINTS_INFOBOX);
+			final Widget widget = client.getWidget(ComponentID.RAIDS_POINTS_INFOBOX);
 			if (widget != null)
 			{
 				widget.setHidden(hidden);
