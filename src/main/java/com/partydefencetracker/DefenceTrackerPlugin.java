@@ -310,7 +310,7 @@ public class DefenceTrackerPlugin extends Plugin
 		specialList.clear();
 		if (partyService.isInParty())
 		{
-			for (NPC n : client.getNpcs())
+			for (NPC n : client.getTopLevelWorldView().npcs())
 			{
 				if (n != null && n.getName() != null && (n.getName().equalsIgnoreCase(boss) || (n.getName().contains("Tekton") && boss.equalsIgnoreCase("Tekton")))
 					&& (n.isDead() || n.getHealthRatio() == 0))
