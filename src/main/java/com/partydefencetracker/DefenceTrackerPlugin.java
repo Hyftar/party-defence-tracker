@@ -266,7 +266,7 @@ public class DefenceTrackerPlugin extends Plugin
 		int world = e.getWorld();
 		SpecialWeapon weapon = e.getWeapon();
 		int index = e.getNpcIndex();
-		NPC npc = client.getCachedNPCs()[index];
+		NPC npc = client.getTopLevelWorldView().npcs().byIndex(index);
 
 		clientThread.invoke(() ->
 		{
@@ -758,7 +758,8 @@ public class DefenceTrackerPlugin extends Plugin
 
 	public boolean isInCoxLobby()
 	{
-		return client.getMapRegions() != null && client.getMapRegions().length > 0 && Arrays.stream(client.getMapRegions()).anyMatch((s) -> s == 4919);
+		int[] regions = client.getTopLevelWorldView().getMapRegions();
+		return regions != null && regions.length > 0 && Arrays.stream(regions).anyMatch((s) -> s == 4919);
 	}
 
 	private int getCoxPartySize()
