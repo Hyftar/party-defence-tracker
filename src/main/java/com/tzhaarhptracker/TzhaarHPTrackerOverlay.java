@@ -39,7 +39,6 @@ import net.runelite.client.game.NpcUtil;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
-import net.runelite.client.ui.overlay.OverlayPriority;
 import net.runelite.client.ui.overlay.OverlayUtil;
 import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 import static net.runelite.api.NpcID.*;
@@ -65,7 +64,7 @@ public class TzhaarHPTrackerOverlay extends Overlay
 		this.modelOutlineRenderer = modelOutlineRenderer;
 		this.npcUtil = npcUtil;
 		setPosition(OverlayPosition.DYNAMIC);
-		setPriority(OverlayPriority.HIGHEST);
+		setPriority(Overlay.PRIORITY_HIGHEST);
 		setLayer(OverlayLayer.UNDER_WIDGETS);
 	}
 
@@ -79,6 +78,7 @@ public class TzhaarHPTrackerOverlay extends Overlay
 				plugin.loadFont();
 			}
 
+			WorldView wv = client.getTopLevelWorldView();
 			ArrayList<NPC> stackedNpcs = new ArrayList<>();
 
 			for (TzhaarNPC n : plugin.getNpcs())
@@ -128,10 +128,10 @@ public class TzhaarHPTrackerOverlay extends Overlay
 
 							if (config.highlightStyle().contains(TzhaarHPTrackerConfig.HighlightStyle.TRUE_TILE))
 							{
-								LocalPoint lp = LocalPoint.fromWorld(client, n.getNpc().getWorldLocation());
+								LocalPoint lp = LocalPoint.fromWorld(wv, n.getNpc().getWorldLocation());
 								if (lp != null)
 								{
-									lp = new LocalPoint(lp.getX() + size * 128 / 2 - 64, lp.getY() + size * 128 / 2 - 64);
+									lp = new LocalPoint(lp.getX() + size * 128 / 2 - 64, lp.getY() + size * 128 / 2 - 64, wv);
 									Polygon tilePoly = Perspective.getCanvasTileAreaPoly(client, lp, size);
 									if (tilePoly != null)
 									{
@@ -158,7 +158,7 @@ public class TzhaarHPTrackerOverlay extends Overlay
 								{
 									int x = lp.getX() - (size - 1) * 128 / 2;
 									int y = lp.getY() - (size - 1) * 128 / 2;
-									Polygon tilePoly = Perspective.getCanvasTilePoly(client, new LocalPoint(x, y));
+									Polygon tilePoly = Perspective.getCanvasTilePoly(client, new LocalPoint(x, y, wv));
 									if (tilePoly != null)
 									{
 										switch (config.tileLines())
@@ -179,7 +179,7 @@ public class TzhaarHPTrackerOverlay extends Overlay
 
 							if (config.highlightStyle().contains(TzhaarHPTrackerConfig.HighlightStyle.SW_TRUE_TILE))
 							{
-								LocalPoint lp = LocalPoint.fromWorld(client, n.getNpc().getWorldLocation());
+								LocalPoint lp = LocalPoint.fromWorld(wv, n.getNpc().getWorldLocation());
 								if (lp != null)
 								{
 									Polygon tilePoly = Perspective.getCanvasTilePoly(client, lp);

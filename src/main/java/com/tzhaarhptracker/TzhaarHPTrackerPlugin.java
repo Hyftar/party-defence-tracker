@@ -103,6 +103,8 @@ public class TzhaarHPTrackerPlugin extends Plugin
 		MenuAction.NPC_FIFTH_OPTION, MenuAction.WIDGET_TARGET_ON_NPC, MenuAction.ITEM_USE_ON_NPC
 	);
 
+	private static final Collection<Integer> allowedBanks = Set.of(9808, 9552, 10063, 10064, 10065);
+
 	@Getter
 	private final ArrayList<TzhaarNPC> npcs = new ArrayList<>();
 
@@ -191,7 +193,7 @@ public class TzhaarHPTrackerPlugin extends Plugin
 
 		if (client.getGameState() == GameState.LOGGED_IN && isInAllowedCaves() && npcs.isEmpty())
 		{
-			for (NPC npc : client.getNpcs())
+			for (NPC npc : client.getTopLevelWorldView().npcs())
 			{
 				if (npc.getName() != null && (INFERNO_NPC.contains(npc.getName()) || FIGHT_CAVE_NPC.contains(npc.getName())))
 				{
@@ -313,7 +315,7 @@ public class TzhaarHPTrackerPlugin extends Plugin
 
 		if (config.recolorMenu() && isInAllowedCaves())
 		{
-			NPC npc = client.getCachedNPCs()[e.getIdentifier()];
+			NPC npc = client.getTopLevelWorldView().npcs().byIndex(e.getIdentifier());
 			for (TzhaarNPC n : npcs)
 			{
 				if (npc != null && npc.getName() != null && n.getNpc() == npc && !EXCLUDED_NPC.contains(npc.getName().toLowerCase()))
@@ -451,7 +453,8 @@ public class TzhaarHPTrackerPlugin extends Plugin
 	public Collection<GameObject> getCaveEntrances()
 	{
 		Collection<GameObject> objects = new ArrayList<>();
-		Tile[][] tiles = client.getScene().getTiles()[client.getPlane()];
+		WorldView wv = client.getTopLevelWorldView();
+		Tile[][] tiles = wv.getScene().getTiles()[wv.getPlane()];
 		for (Tile[] tile : tiles)
 		{
 			for (Tile t : tile)
@@ -530,24 +533,24 @@ public class TzhaarHPTrackerPlugin extends Plugin
 
 	public boolean isInFightCaves()
 	{
-		return ArrayUtils.contains(client.getMapRegions(), FIGHT_CAVES_REGION);
+		return ArrayUtils.contains(client.getTopLevelWorldView().getMapRegions(), FIGHT_CAVES_REGION);
 	}
 
 	public boolean isInInferno()
 	{
-		return ArrayUtils.contains(client.getMapRegions(), INFERNO_REGION);
+		return ArrayUtils.contains(client.getTopLevelWorldView().getMapRegions(), INFERNO_REGION);
 	}
 
 	//10063-10065 is inferno bank region
 	//9808 is fight caves bank area, 9552 is fight pits area
 	public boolean isInAllowedBanks()
 	{
-		return client.getMapRegions() != null && client.getMapRegions().length > 0 && Arrays.stream(client.getMapRegions()).anyMatch(new ArrayList<>
-			(Arrays.asList(9808, 9552, 10063, 10064, 10065))::contains);
+		int[] regions = client.getTopLevelWorldView().getMapRegions();
+		return regions != null && regions.length > 0 && Arrays.stream(regions).anyMatch(allowedBanks::contains);
 	}
 
 	public boolean isInJadChallenge()
 	{
-		return ArrayUtils.contains(client.getMapRegions(), INFERNO_REGION) && client.getVarbitValue(JAD_CHALLENGE_VAR) == 1;
+		return ArrayUtils.contains(client.getTopLevelWorldView().getMapRegions(), INFERNO_REGION) && client.getVarbitValue(JAD_CHALLENGE_VAR) == 1;
 	}
 }
