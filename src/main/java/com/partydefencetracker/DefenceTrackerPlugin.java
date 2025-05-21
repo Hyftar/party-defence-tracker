@@ -684,6 +684,19 @@ public class DefenceTrackerPlugin extends Plugin
 					}
 				}
 				break;
+			case EMBERLIGHT:
+				if (hit > 0)
+				{
+					if (boss.equalsIgnoreCase("K'ril Tsutsaroth") || boss.equalsIgnoreCase("Abyssal Sire") || boss.equalsIgnoreCase("Yama"))
+					{
+						bossDef -= BossInfo.getBaseDefence(boss) * .15;
+					}
+					else
+					{
+						bossDef -= BossInfo.getBaseDefence(boss) * .05;
+					}
+				}
+				break;
 			case BARRELCHEST_ANCHOR:
 				bossDef -= hit * .10;
 				break;
