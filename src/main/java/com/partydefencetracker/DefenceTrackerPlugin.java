@@ -715,6 +715,10 @@ public class DefenceTrackerPlugin extends Plugin
 		{
 			bossDef = 100;
 		}
+		else if (boss.equalsIgnoreCase("Yama") && bossDef < 145)
+		{
+			bossDef = 145;
+		}
 		else if (bossDef < 0)
 		{
 			bossDef = 0;
