@@ -674,7 +674,7 @@ public class DefenceTrackerPlugin extends Plugin
 			case DARKLIGHT:
 				if (hit > 0)
 				{
-					if (boss.equalsIgnoreCase("K'ril Tsutsaroth") || boss.equalsIgnoreCase("Abyssal Sire"))
+					if (boss.equalsIgnoreCase("K'ril Tsutsaroth") || boss.equalsIgnoreCase("Abyssal Sire") || boss.equalsIgnoreCase("Yama"))
 					{
 						bossDef -= BossInfo.getBaseDefence(boss) * .10;
 					}
