@@ -631,6 +631,9 @@ public class DamageHandler extends InfoHandler
 	{
 		if (!processedThisTick && damage > 0 && skill != null)
 		{
+			if (style == WeaponStyle.DINHS)
+				return;
+
 			processedThisTick = true;
 			boolean isAoe = style == WeaponStyle.CHINS || (client.getLocalPlayer().getAnimation() == BARRAGE || aoeSpellQueued);
 			checkIfInteractingDead(damage, isAoe, interacting.getIndex(), attackStyle, style);

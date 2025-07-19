@@ -216,8 +216,8 @@ public class WeaponMap
 		StyleMap.put(ItemID.DHAROKS_GREATAXE_25516, WeaponStyle.MELEE);
 		StyleMap.put(ItemID.DHAROKS_GREATAXE_50, WeaponStyle.MELEE);
 		StyleMap.put(ItemID.DHAROKS_GREATAXE_75, WeaponStyle.MELEE);
-		StyleMap.put(ItemID.DINHS_BULWARK, WeaponStyle.MELEE);
-		StyleMap.put(ItemID.DINHS_BLAZING_BULWARK, WeaponStyle.MELEE);
+		StyleMap.put(ItemID.DINHS_BULWARK, WeaponStyle.DINHS);
+		StyleMap.put(ItemID.DINHS_BLAZING_BULWARK, WeaponStyle.DINHS);
 		StyleMap.put(ItemID.DRAGON_2H_SWORD, WeaponStyle.MELEE);
 		StyleMap.put(ItemID.DRAGON_2H_SWORD_20559, WeaponStyle.MELEE);
 		StyleMap.put(ItemID.DRAGON_2H_SWORD_CR, WeaponStyle.MELEE);
