@@ -31,6 +31,8 @@ import com.coxadditions.CoxAdditionsPlugin;
 import java.awt.geom.Point2D;
 import net.runelite.api.Point;
 import net.runelite.api.*;
+import net.runelite.api.gameval.ObjectID;
+import net.runelite.api.gameval.VarPlayerID;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.ui.overlay.*;
@@ -58,7 +60,7 @@ public class CoxAdditionsOverlay extends Overlay
 		this.config = config;
 		this.modelOutlineRenderer = modelOutlineRenderer;
 		setPosition(OverlayPosition.DYNAMIC);
-		setPriority(OverlayPriority.HIGH);
+		setPriority(PRIORITY_HIGH);
 		setLayer(OverlayLayer.ABOVE_SCENE);
 	}
 
@@ -160,9 +162,10 @@ public class CoxAdditionsOverlay extends Overlay
 				}
 			}
 
-			if (!config.tlList().equals(""))
+			if (!config.tlList().isEmpty())
 			{
-				for (NPC npc : client.getNpcs())
+				WorldView worldView = client.getTopLevelWorldView();
+				for (NPC npc : worldView.npcs())
 				{
 					if (npc.getName() != null && npc.getId() != 8203)
 					{
@@ -185,10 +188,10 @@ public class CoxAdditionsOverlay extends Overlay
 						{
 							NPCComposition comp = npc.getComposition();
 							int size = comp.getSize();
-							LocalPoint lp = LocalPoint.fromWorld(client, npc.getWorldLocation());
+							LocalPoint lp = LocalPoint.fromWorld(worldView, npc.getWorldLocation());
 							if (lp != null)
 							{
-								lp = new LocalPoint(lp.getX() + size * 128 / 2 - 64, lp.getY() + size * 128 / 2 - 64);
+								lp = new LocalPoint(lp.getX() + size * 128 / 2 - 64, lp.getY() + size * 128 / 2 - 64, worldView);
 								Polygon tilePoly = Perspective.getCanvasTileAreaPoly(client, lp, size);
 								switch (config.tileLines())
 								{
@@ -255,12 +258,13 @@ public class CoxAdditionsOverlay extends Overlay
 			if (plugin.room() == InstanceTemplates.RAIDS_THIEVING && client.getLocalPlayer() != null
 				&& WorldPoint.fromLocalInstance(client, client.getLocalPlayer().getLocalLocation()).getRegionID() == 13140)
 			{
-				Tile[][][] tiles = client.getScene().getTiles();
+				WorldView worldView = client.getTopLevelWorldView();
+				Tile[][][] tiles = worldView.getScene().getTiles();
 				for (int x = 0; x < Constants.SCENE_SIZE; ++x)
 				{
 					for (int y = 0; y < Constants.SCENE_SIZE; ++y)
 					{
-						Tile tile = tiles[client.getPlane()][x][y];
+						Tile tile = tiles[worldView.getPlane()][x][y];
 						if (tile != null && tile.getGameObjects() != null)
 						{
 							checkObjects:
@@ -315,21 +319,22 @@ public class CoxAdditionsOverlay extends Overlay
 			//Made by De0
 			if (config.ccWarning())
 			{
-				int sceneX = 1232 - client.getBaseX(), sceneY = 3573 - client.getBaseY();
+				WorldView worldView = client.getTopLevelWorldView();
+				int sceneX = 1232 - worldView.getBaseX(), sceneY = 3573 - worldView.getBaseY();
 				if (sceneX >= 0 && sceneY >= 0 && sceneX < 104 && sceneY < 104)
 				{
-					Tile tile = client.getScene().getTiles()[0][sceneX][sceneY];
+					Tile tile = worldView.getScene().getTiles()[0][sceneX][sceneY];
 					if (tile.getGameObjects()[0] != null)
 					{
 						GameObject obj = tile.getGameObjects()[0];
-						if (obj.getId() == ObjectID.CHAMBERS_OF_XERIC)
+						if (obj.getId() == ObjectID.RAIDS_ENTRANCE_STEPS)
 						{
 							Color color = null;
 							if (client.getFriendsChatManager() == null)
 							{
 								color = new Color(255, 0, 0, 50);
 							}
-							else if (client.getVarpValue(VarPlayer.IN_RAID_PARTY) == -1)
+							else if (client.getVarpValue(VarPlayerID.RAIDS_PARTY_GROUPHOLDER) == -1)
 							{
 								color = new Color(200, 200, 0, 50);
 							}

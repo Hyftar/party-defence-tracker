@@ -11,7 +11,6 @@ import net.runelite.api.InstanceTemplates;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.OverlayPosition;
-import net.runelite.client.ui.overlay.OverlayPriority;
 import net.runelite.client.ui.overlay.components.LineComponent;
 
 public class VangPotsOverlay extends OverlayPanel
@@ -30,7 +29,7 @@ public class VangPotsOverlay extends OverlayPanel
 		this.plugin = plugin;
 		this.config = config;
 		setPosition(OverlayPosition.TOP_LEFT);
-		setPriority(OverlayPriority.MED);
+		setPriority(PRIORITY_MED);
 		setLayer(OverlayLayer.ABOVE_SCENE);
 	}
 

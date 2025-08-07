@@ -11,7 +11,7 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import javax.inject.Inject;
 import net.runelite.api.Client;
-import net.runelite.api.ItemID;
+import net.runelite.api.gameval.ItemID;
 import net.runelite.api.Perspective;
 import net.runelite.api.Player;
 import net.runelite.api.Point;
@@ -19,7 +19,6 @@ import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
-import net.runelite.client.ui.overlay.OverlayPriority;
 import net.runelite.client.ui.overlay.OverlayUtil;
 import net.runelite.client.util.ImageUtil;
 
@@ -41,7 +40,7 @@ public class RaidsPotsStatusOverlay extends Overlay
 		this.itemManager = itemManager;
 
 		setPosition(OverlayPosition.DYNAMIC);
-		setPriority(OverlayPriority.HIGH);
+		setPriority(PRIORITY_HIGH);
 		setLayer(OverlayLayer.ABOVE_SCENE);
 	}
 
@@ -52,7 +51,7 @@ public class RaidsPotsStatusOverlay extends Overlay
 		{
 			for (RaidsPlayers raider : plugin.getPlayersInParty())
 			{
-				for (Player player : client.getPlayers())
+				for (Player player : client.getTopLevelWorldView().players())
 				{
 					if (player.getName() != null && player.getName().equals(raider.getPlayer()))
 					{
@@ -115,8 +114,8 @@ public class RaidsPotsStatusOverlay extends Overlay
 				zOffset = player.getLogicalHeight() + 250;
 		}
 
-		Point base = Perspective.localToCanvas(client, player.getLocalLocation(), client.getPlane(), zOffset);
-		BufferedImage image = pot.equals("OVL") ? itemManager.getImage(ItemID.OVERLOAD_4_20996) : itemManager.getImage(ItemID.PRAYER_ENHANCE_4);
+		Point base = Perspective.localToCanvas(client, player.getLocalLocation(), client.getTopLevelWorldView().getPlane(), zOffset);
+		BufferedImage image = pot.equals("OVL") ? itemManager.getImage(ItemID.RAIDS_VIAL_OVERLOAD_STRONG_4) : itemManager.getImage(ItemID.RAIDS_VIAL_PRAYER_STRONG_4);
 		image = ImageUtil.resizeImage(image, size, size);
 
 		if (base != null)
