@@ -892,7 +892,7 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 				removeInfobox("Grubs");
 			}
 
-			if (!hasRaidStarted && isInstanceTimerRunning && isRaidLeader && partyService.isInParty())
+			if (config.instanceTimerSharing() && !hasRaidStarted && isInstanceTimerRunning && isRaidLeader && partyService.isInParty())
 			{
 				if (instanceTimerShareCooldown <= 1)
 				{
@@ -919,6 +919,11 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 	@Subscribe
 	public void onPartyInstanceTimerSync(PartyInstanceTimerSync e)
 	{
+		if (!config.instanceTimerSharing())
+		{
+			return;
+		}
+
 		if (partyService.getLocalMember().getMemberId() != e.getMemberId())
 		{
 			if (!isInstanceTimerRunning && inRaid && client.getFriendsChatManager() != null)
@@ -1552,6 +1557,8 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 	public void onVarbitChanged(VarbitChanged e)
 	{
 		inRaid = client.getVarbitValue(VarbitID.RAIDS_CLIENT_INDUNGEON) == 1;
+		hasRaidStarted = client.getVarbitValue(VarbitID.RAIDS_CLIENT_PROGRESS) > 0;
+		isRaidLeader = client.getVarbitValue(VarbitID.RAIDS_CLIENT_ISLEADER) == 1;
 
 		if (inRaid)
 		{

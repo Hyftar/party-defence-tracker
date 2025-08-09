@@ -145,7 +145,9 @@ public class CoxAdditionsOverlay extends Overlay
 				}
 			}
 
-			if (config.instanceTimer() == CoxAdditionsConfig.instanceTimerMode.OVERHEAD && plugin.isInstanceTimerRunning())
+			if ((config.instanceTimer() == CoxAdditionsConfig.instanceTimerMode.OVERHEAD
+				|| config.instanceTimer() == CoxAdditionsConfig.instanceTimerMode.BOTH)
+				&& plugin.isInstanceTimerRunning())
 			{
 				Player player = client.getLocalPlayer();
 				if (player != null)
