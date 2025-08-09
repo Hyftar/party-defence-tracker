@@ -233,10 +233,19 @@ public interface CoxAdditionsConfig extends Config
 	}
 
 	@ConfigItem(
+		name = "Instance Timer On During Raid",
+		keyName = "instanceTimerInRaid",
+		description = "Toggle to keep the instance timer running during the raid.",
+		position = 1,
+		section = roomSection
+	)
+	default boolean instanceTimerInRaid() {return false;}
+
+	@ConfigItem(
 		name = "Left Click Leave CC",
 		keyName = "leftClickLeave",
 		description = "Left click leave corp simulator",
-		position = 1,
+		position = 2,
 		section = roomSection
 	)
 	default boolean leftClickLeave()
@@ -248,7 +257,7 @@ public interface CoxAdditionsConfig extends Config
 		name = "CC Warning",
 		keyName = "ccWarning",
 		description = "Highlights the entrance to CoX. Red = not in a CC, Yellow = in a CC, but no party made.",
-		position = 2,
+		position = 3,
 		section = roomSection
 	)
 	default boolean ccWarning()
@@ -260,7 +269,7 @@ public interface CoxAdditionsConfig extends Config
 		name = "Hotkey",
 		keyName = "hotkey",
 		description = "Configures the hotkey used for hotkey configs in Cox Additions",
-		position = 3,
+		position = 4,
 		section = roomSection
 	)
 	default Keybind hotkey()
@@ -272,7 +281,7 @@ public interface CoxAdditionsConfig extends Config
 		name = "Hotkey Swap Private Chest",
 		keyName = "hotkeySwapBank",
 		description = "Switches your CoX chest from shared to private when holding the hotkey",
-		position = 4,
+		position = 5,
 		section = roomSection
 	)
 	default boolean hotkeySwapBank()
@@ -284,7 +293,7 @@ public interface CoxAdditionsConfig extends Config
 		name = "Prayer Enh. Timer",
 		keyName = "detailedPrayerEnhance",
 		description = "Displays a detailed prayer enhance timer in CoX",
-		position = 5,
+		position = 6,
 		section = roomSection
 	)
 	default enhanceMode detailedPrayerEnhance()
@@ -296,7 +305,7 @@ public interface CoxAdditionsConfig extends Config
 		name = "Raids Pots Status Overlay",
 		keyName = "raidsPotsStatusOverlay",
 		description = "Displays how many overload and enhance ticks each player has left. Must be in party to see other players",
-		position = 6,
+		position = 7,
 		section = roomSection
 	)
 	default boolean raidsPotsStatusOverlay()
@@ -308,7 +317,7 @@ public interface CoxAdditionsConfig extends Config
 		name = "Pots Height",
 		keyName = "raidsPotsHeight",
 		description = "The height at which to display the Raids Pots Status Overlay",
-		position = 7,
+		position = 8,
 		section = roomSection
 	)
 	default RaidsPotsLoc raidsPotsHeight()
@@ -320,7 +329,7 @@ public interface CoxAdditionsConfig extends Config
 		name = "Raids Pots Icon Size",
 		keyName = "raidsPotsIconSize",
 		description = "Changes the size of the raids pots icon",
-		position = 8,
+		position = 9,
 		section = roomSection
 	)
 	default int raidsPotsIconSize()
@@ -332,7 +341,7 @@ public interface CoxAdditionsConfig extends Config
 		name = "Anti-Aliasing",
 		keyName = "antiAlias",
 		description = "Turns on anti-aliasing for all overlays. Makes them smoother.",
-		position = 9,
+		position = 10,
 		section = roomSection
 	)
 	default boolean antiAlias()
@@ -344,7 +353,7 @@ public interface CoxAdditionsConfig extends Config
 		name = "—————— True Tile ——————",
 		keyName = "room divider",
 		description = "",
-		position = 10,
+		position = 11,
 		section = roomSection
 	)
 	void roomDivider();
@@ -353,7 +362,7 @@ public interface CoxAdditionsConfig extends Config
 		name = "True Location List",
 		keyName = "tlList",
 		description = "NPC's in this list will be highlighted with true location. ONLY works with Cox bosses",
-		position = 11,
+		position = 12,
 		section = roomSection
 	)
 	default String tlList()
@@ -366,7 +375,7 @@ public interface CoxAdditionsConfig extends Config
 		name = "True Location Width",
 		keyName = "tlThiCC",
 		description = "Outline width for true location highlight",
-		position = 12,
+		position = 13,
 		section = roomSection
 	)
 	default double tlThiCC()
@@ -379,7 +388,7 @@ public interface CoxAdditionsConfig extends Config
 		name = "True Location Color",
 		keyName = "tlColor",
 		description = "Highlight color for true location",
-		position = 13,
+		position = 14,
 		section = roomSection
 	)
 	default Color tlColor()
@@ -392,7 +401,7 @@ public interface CoxAdditionsConfig extends Config
 		name = "True Location Fill Color",
 		keyName = "tlFillColor",
 		description = "Fill color for true location",
-		position = 14,
+		position = 15,
 		section = roomSection
 	)
 	default Color tlFillColor()
@@ -404,7 +413,7 @@ public interface CoxAdditionsConfig extends Config
 		name = "True Tile Line Type",
 		keyName = "tileLines",
 		description = "Sets the true tile outline to regular, dashed, or corners only",
-		position = 15,
+		position = 16,
 		section = roomSection
 	)
 	default lineType tileLines()
@@ -416,7 +425,7 @@ public interface CoxAdditionsConfig extends Config
 		name = "—————— Puzzle Rooms ——————",
 		keyName = "puzzle divider",
 		description = "",
-		position = 16,
+		position = 17,
 		section = roomSection
 	)
 	void puzzleDivider();
@@ -425,7 +434,7 @@ public interface CoxAdditionsConfig extends Config
 		keyName = "chestGroupsHighlight",
 		name = "Highlight Grub Chests",
 		description = "CoX CM ONLY - Highlights groups of 4 chests",
-		position = 17,
+		position = 18,
 		section = roomSection
 	)
 	default Set<HighlightChestGroups> chestGroupsHighlight()
@@ -437,7 +446,7 @@ public interface CoxAdditionsConfig extends Config
 		keyName = "chestGroupsHighlightStyle",
 		name = "Chest Highlight Style",
 		description = "Selects the highlight style for 'Highlight Grub Chests'",
-		position = 18,
+		position = 19,
 		section = roomSection
 	)
 	default GrubChestStyle chestGroupsHighlightStyle()
@@ -449,7 +458,7 @@ public interface CoxAdditionsConfig extends Config
 		keyName = "grubsInfobox",
 		name = "Grubs Counter",
 		description = "Displays an infobox showing the total amount of cavern grubs collected. Works with party",
-		position = 19,
+		position = 20,
 		section = roomSection
 	)
 	default grubsMode grubsInfobox()
@@ -461,7 +470,7 @@ public interface CoxAdditionsConfig extends Config
 		keyName = "grubsAmount",
 		name = "Grubs Amount",
 		description = "Set to the amount of grubs you/your team want to collect. The cavern grub counter's text will turn green when this number is reached.",
-		position = 20,
+		position = 21,
 		section = roomSection
 	)
 	default int grubsAmount()
@@ -473,7 +482,7 @@ public interface CoxAdditionsConfig extends Config
 		name = "Hotkey Swap Smash",
 		keyName = "hotkeySwapSmash",
 		description = "Switches attack and smash when holding the hotkey",
-		position = 21,
+		position = 22,
 		section = roomSection
 	)
 	default boolean hotkeySwapSmash()
@@ -485,7 +494,7 @@ public interface CoxAdditionsConfig extends Config
 		keyName = "iceDemonHp",
 		name = "Ice Demon HP",
 		description = "Displays Ice Demon HP percent while lighting kindling",
-		position = 22,
+		position = 23,
 		section = roomSection
 	)
 	default boolean iceDemonHp()
@@ -497,7 +506,7 @@ public interface CoxAdditionsConfig extends Config
 		keyName = "swapCoXKeystone",
 		name = "Left Click Drop Keystone",
 		description = "swaps use with drop for the keystone crystal at tightrope",
-		position = 23,
+		position = 24,
 		section = roomSection
 	)
 	default boolean swapCoXKeystone()
@@ -509,7 +518,7 @@ public interface CoxAdditionsConfig extends Config
 		name = "—————— Combat Rooms ——————",
 		keyName = "combat divider",
 		description = "",
-		position = 24,
+		position = 25,
 		section = roomSection
 	)
 	void combatDivider();
@@ -518,7 +527,7 @@ public interface CoxAdditionsConfig extends Config
 		name = "Small Muttadile HP",
 		keyName = "smallMuttaHp",
 		description = "Displays the health percentage of small Muttadile while meat tree is alive",
-		position = 25,
+		position = 26,
 		section = roomSection
 	)
 	default boolean smallMuttaHp()
@@ -530,7 +539,7 @@ public interface CoxAdditionsConfig extends Config
 		name = "Big Muttadile HP",
 		keyName = "bigMuttaHp",
 		description = "Displays the health percentage of big Muttadile after the small Muttadile is dead",
-		position = 26,
+		position = 27,
 		section = roomSection
 	)
 	default boolean bigMuttaHp()
@@ -542,7 +551,7 @@ public interface CoxAdditionsConfig extends Config
 		name = "Vanguard HP Infobox",
 		keyName = "vangInfobox",
 		description = "Displays the hp left on each vanguard",
-		position = 27,
+		position = 28,
 		section = roomSection
 	)
 	default boolean vangInfobox()
@@ -554,7 +563,7 @@ public interface CoxAdditionsConfig extends Config
 		keyName = "showPanel",
 		name = "Vanguard Overloads Overlay",
 		description = "Shows how many Overloads have been received from Vanguards. Works with party.",
-		position = 28,
+		position = 29,
 		section = roomSection
 	)
 	default boolean showPanel()
@@ -566,7 +575,7 @@ public interface CoxAdditionsConfig extends Config
 		keyName = "overloadChatMessage",
 		name = "Overload Dropped Chat Message",
 		description = "Prints a chat message when a player receives an Overload from Vanguards. Works with party.",
-		position = 29,
+		position = 30,
 		section = roomSection
 	)
 	default boolean overloadChatMessage()

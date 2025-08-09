@@ -36,6 +36,7 @@ import com.coxadditions.overlay.RaidsPotsStatusOverlay;
 import com.coxadditions.overlay.VangPotsOverlay;
 import com.coxadditions.overlay.VanguardInfoBox;
 import com.coxadditions.party.PartyGrubsUpdate;
+import com.coxadditions.party.PartyInstanceTimerSync;
 import com.coxadditions.party.PartyOverloadUpdate;
 import com.coxadditions.party.PartyRaidsPotsUpdate;
 import com.google.common.collect.ArrayListMultimap;
@@ -303,7 +304,13 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 	@Getter
 	private int instanceTimer = 3;
 	@Getter
+	private int instanceTimerShareCooldown = 20;
+	@Getter
 	private boolean isInstanceTimerRunning = false;
+	@Getter
+	private boolean hasRaidStarted = false;
+	@Getter
+	private boolean isRaidLeader = false;
 
 	//Olm
 	@Getter
@@ -476,6 +483,9 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 		inThieving = false;
 		inPrep = false;
 
+		isRaidLeader = false;
+		hasRaidStarted = false;
+
 		olmTile = null;
 		olmPhase = "";
 		olmSpawned = false;
@@ -584,6 +594,7 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 		wsClient.registerMessage(PartyOverloadUpdate.class);
 		wsClient.registerMessage(PartyGrubsUpdate.class);
 		wsClient.registerMessage(PartyRaidsPotsUpdate.class);
+		wsClient.registerMessage(PartyInstanceTimerSync.class);
 		overlayManager.add(overlay);
 		overlayManager.add(olmSideOverlay);
 		overlayManager.add(vanguardInfobox);
@@ -606,6 +617,7 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 		wsClient.unregisterMessage(PartyOverloadUpdate.class);
 		wsClient.unregisterMessage(PartyGrubsUpdate.class);
 		wsClient.unregisterMessage(PartyRaidsPotsUpdate.class);
+		wsClient.unregisterMessage(PartyInstanceTimerSync.class);
 		overlayManager.remove(overlay);
 		overlayManager.remove(olmSideOverlay);
 		overlayManager.remove(vanguardInfobox);
@@ -690,6 +702,12 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 						addInfobox("Grubs");
 					}
 					break;
+				case "instanceTimerInRaid":
+					if (!config.instanceTimerInRaid() && hasRaidStarted)
+					{
+						instanceTimer = 5;
+						isInstanceTimerRunning = false;
+					}
 				case "overlayFontType":
 				case "overlayFontName":
 				case "overlayFontSize":
@@ -712,13 +730,18 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 	{
 		String msg = Text.standardize(e.getMessageNode().getValue());
 
-		if (msg.equalsIgnoreCase("you have been kicked from the channel.") || msg.contains("decided to start the raid without you. sorry.")
-			|| msg.equalsIgnoreCase("you are no longer eligible to lead the party.") || msg.equalsIgnoreCase("the raid has begun!"))
+		if (msg.equalsIgnoreCase("you have been kicked from the channel.")
+			|| msg.equalsIgnoreCase("You have left the channel.")
+			|| msg.contains("decided to start the raid without you. sorry.")
+			|| msg.equalsIgnoreCase("you are no longer eligible to lead the party.")
+			|| msg.equalsIgnoreCase("Congratulations - your raid is complete!")
+			|| (!config.instanceTimerInRaid() && msg.equalsIgnoreCase("the raid has begun!")))
 		{
 			instanceTimer = 5;
 			isInstanceTimerRunning = false;
 		}
-		else if (msg.equalsIgnoreCase("inviting party...") || msg.equalsIgnoreCase("your party has entered the dungeons! come and join them now."))
+		else if (msg.equalsIgnoreCase("inviting party...")
+			|| msg.equalsIgnoreCase("your party has entered the dungeons! come and join them now."))
 		{
 			instanceTimer = 5;
 			isInstanceTimerRunning = true;
@@ -868,6 +891,19 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 			{
 				removeInfobox("Grubs");
 			}
+
+			if (!hasRaidStarted && isInstanceTimerRunning && isRaidLeader && partyService.isInParty())
+			{
+				if (instanceTimerShareCooldown <= 1)
+				{
+					partyService.send(new PartyInstanceTimerSync(client.getLocalPlayer().getId(), instanceTimer));
+					instanceTimerShareCooldown = 20;
+				}
+				else
+				{
+					instanceTimerShareCooldown--;
+				}
+			}
 		}
 
 		if (isInstanceTimerRunning)
@@ -876,6 +912,40 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 			if (instanceTimer < 0)
 			{
 				instanceTimer = 3;
+			}
+		}
+	}
+
+	@Subscribe
+	public void onPartyInstanceTimerSync(PartyInstanceTimerSync e)
+	{
+		if (partyService.getLocalMember().getMemberId() != e.getMemberId())
+		{
+			if (!isInstanceTimerRunning && inRaid && client.getFriendsChatManager() != null)
+			{
+				clientThread.invoke(() ->
+				{
+					int senderID = e.getPlayerID();
+					boolean senderVisible = false;
+
+					for (Player p : client.getTopLevelWorldView().players())
+					{
+						if (p.getId() == senderID)
+						{
+							senderVisible = true;
+							break;
+						}
+					}
+
+					if (!senderVisible)
+					{
+						return;
+					}
+
+					instanceTimer = e.getInstanceTimerValue() - 1;
+					if (instanceTimer < 0) instanceTimer = 3;
+					isInstanceTimerRunning = true;
+				});
 			}
 		}
 	}
