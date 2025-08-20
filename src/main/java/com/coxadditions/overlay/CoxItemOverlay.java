@@ -34,8 +34,8 @@ public class CoxItemOverlay extends WidgetItemOverlay
 	public void renderItemOverlay(Graphics2D graphics, int itemId, WidgetItem itemWidget)
 	{
 		if (plugin.isInRaid() && config.highlightChest() != CoxAdditionsConfig.HighlightChestMode.OFF
-			&& ((!config.highlightChestItems().equals("") && plugin.getChestHighlightIdList().size() > 0)
-			|| (!config.highlightChestItems2().equals("") && plugin.getChestHighlightIdList2().size() > 0)))
+			&& ((!config.highlightChestItems().isEmpty() && !plugin.getChestHighlightIdList().isEmpty())
+			|| (!config.highlightChestItems2().isEmpty() && !plugin.getChestHighlightIdList2().isEmpty())))
 		{
 			if (plugin.getChestHighlightIdList().contains(String.valueOf(itemId)) || itemNameInList(plugin.getChestHighlightIdList(), itemWidget))
 			{

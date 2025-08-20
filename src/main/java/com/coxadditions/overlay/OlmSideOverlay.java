@@ -15,7 +15,6 @@ import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
-import net.runelite.client.ui.overlay.OverlayPriority;
 import net.runelite.client.util.ColorUtil;
 
 public class OlmSideOverlay extends Overlay
@@ -31,7 +30,7 @@ public class OlmSideOverlay extends Overlay
 		this.plugin = plugin;
 		this.config = config;
 		setPosition(OverlayPosition.DYNAMIC);
-		setPriority(OverlayPriority.LOW);
+		setPriority(PRIORITY_LOW);
 		setLayer(OverlayLayer.ABOVE_SCENE);
 	}
 

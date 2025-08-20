@@ -12,11 +12,9 @@ import net.runelite.api.Client;
 import net.runelite.api.InstanceTemplates;
 import net.runelite.api.NPC;
 import net.runelite.api.Point;
-import net.runelite.api.Varbits;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
-import net.runelite.client.ui.overlay.OverlayPriority;
 import net.runelite.client.ui.overlay.OverlayUtil;
 
 public class CoxHPOverlay extends Overlay
@@ -32,7 +30,7 @@ public class CoxHPOverlay extends Overlay
 		this.plugin = plugin;
 		this.config = config;
 		setPosition(OverlayPosition.DYNAMIC);
-		setPriority(OverlayPriority.HIGH);
+		setPriority(PRIORITY_HIGH);
 		setLayer(OverlayLayer.UNDER_WIDGETS);
 	}
 

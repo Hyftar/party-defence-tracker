@@ -7,7 +7,7 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import javax.inject.Inject;
 import net.runelite.api.Client;
-import net.runelite.api.Varbits;
+import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.components.TitleComponent;
 
@@ -34,7 +34,7 @@ public class OlmPhasePanel extends OverlayPanel
 		}
 
 		panelComponent.getChildren().clear();
-		if (config.olmPhasePanel() && this.client.getVarbitValue(Varbits.IN_RAID) == 1 && !plugin.getOlmPhase().equals(""))
+		if (config.olmPhasePanel() && this.client.getVarbitValue(VarbitID.RAIDS_CLIENT_INDUNGEON) == 1 && !plugin.getOlmPhase().isEmpty())
 		{
 			graphics.setFont(plugin.getPanelFont());
 			Color color = plugin.getOlmPhase().equals("Acid") ? Color.GREEN : plugin.getOlmPhase().equals("Flame") ? Color.RED : Color.MAGENTA;

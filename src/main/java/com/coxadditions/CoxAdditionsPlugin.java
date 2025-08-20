@@ -36,6 +36,7 @@ import com.coxadditions.overlay.RaidsPotsStatusOverlay;
 import com.coxadditions.overlay.VangPotsOverlay;
 import com.coxadditions.overlay.VanguardInfoBox;
 import com.coxadditions.party.PartyGrubsUpdate;
+import com.coxadditions.party.PartyInstanceTimerSync;
 import com.coxadditions.party.PartyOverloadUpdate;
 import com.coxadditions.party.PartyRaidsPotsUpdate;
 import com.google.common.collect.ArrayListMultimap;
@@ -45,24 +46,28 @@ import java.awt.Font;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.AnimationID;
+import net.runelite.api.gameval.AnimationID;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameObject;
 import net.runelite.api.GameState;
+import net.runelite.api.IndexedObjectSet;
 import net.runelite.api.InstanceTemplates;
-import net.runelite.api.InventoryID;
-import net.runelite.api.ItemID;
+import net.runelite.api.gameval.InventoryID;
+import net.runelite.api.gameval.ItemID;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
+import net.runelite.api.Menu;
 import net.runelite.api.NPC;
-import net.runelite.api.NpcID;
+import net.runelite.api.gameval.NpcID;
 import net.runelite.api.Player;
 import net.runelite.api.Point;
 import net.runelite.api.Projectile;
 import net.runelite.api.Skill;
-import net.runelite.api.VarPlayer;
-import net.runelite.api.Varbits;
+import net.runelite.api.gameval.SpotanimID;
+import net.runelite.api.gameval.VarPlayerID;
+import net.runelite.api.gameval.VarbitID;
+import net.runelite.api.WorldView;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ActorDeath;
@@ -299,7 +304,13 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 	@Getter
 	private int instanceTimer = 3;
 	@Getter
+	private int instanceTimerShareCooldown = 20;
+	@Getter
 	private boolean isInstanceTimerRunning = false;
+	@Getter
+	private boolean hasRaidStarted = false;
+	@Getter
+	private boolean isRaidLeader = false;
 
 	//Olm
 	@Getter
@@ -472,6 +483,9 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 		inThieving = false;
 		inPrep = false;
 
+		isRaidLeader = false;
+		hasRaidStarted = false;
+
 		olmTile = null;
 		olmPhase = "";
 		olmSpawned = false;
@@ -534,7 +548,7 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 		tlList.clear();
 		for (String str : config.tlList().split(","))
 		{
-			if (!str.trim().equals(""))
+			if (!str.trim().isEmpty())
 			{
 				tlList.add(str.trim().toLowerCase());
 			}
@@ -543,7 +557,7 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 		chestHighlightIdList.clear();
 		for (String str : config.highlightChestItems().split(","))
 		{
-			if (!str.trim().equals(""))
+			if (!str.trim().isEmpty())
 			{
 				try
 				{
@@ -559,7 +573,7 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 		chestHighlightIdList2.clear();
 		for (String str : config.highlightChestItems2().split(","))
 		{
-			if (!str.trim().equals(""))
+			if (!str.trim().isEmpty())
 			{
 				try
 				{
@@ -580,6 +594,7 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 		wsClient.registerMessage(PartyOverloadUpdate.class);
 		wsClient.registerMessage(PartyGrubsUpdate.class);
 		wsClient.registerMessage(PartyRaidsPotsUpdate.class);
+		wsClient.registerMessage(PartyInstanceTimerSync.class);
 		overlayManager.add(overlay);
 		overlayManager.add(olmSideOverlay);
 		overlayManager.add(vanguardInfobox);
@@ -602,6 +617,7 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 		wsClient.unregisterMessage(PartyOverloadUpdate.class);
 		wsClient.unregisterMessage(PartyGrubsUpdate.class);
 		wsClient.unregisterMessage(PartyRaidsPotsUpdate.class);
+		wsClient.unregisterMessage(PartyInstanceTimerSync.class);
 		overlayManager.remove(overlay);
 		overlayManager.remove(olmSideOverlay);
 		overlayManager.remove(vanguardInfobox);
@@ -626,7 +642,7 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 					tlList.clear();
 					for (String str : config.tlList().split(","))
 					{
-						if (!str.trim().equals(""))
+						if (!str.trim().isEmpty())
 						{
 							tlList.add(str.trim().toLowerCase());
 						}
@@ -636,7 +652,7 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 					chestHighlightIdList.clear();
 					for (String str : config.highlightChestItems().split(","))
 					{
-						if (!str.trim().equals(""))
+						if (!str.trim().isEmpty())
 						{
 							try
 							{
@@ -653,7 +669,7 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 					chestHighlightIdList2.clear();
 					for (String str : config.highlightChestItems2().split(","))
 					{
-						if (!str.trim().equals(""))
+						if (!str.trim().isEmpty())
 						{
 							try
 							{
@@ -686,6 +702,12 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 						addInfobox("Grubs");
 					}
 					break;
+				case "instanceTimerInRaid":
+					if (!config.instanceTimerInRaid() && hasRaidStarted)
+					{
+						instanceTimer = 5;
+						isInstanceTimerRunning = false;
+					}
 				case "overlayFontType":
 				case "overlayFontName":
 				case "overlayFontSize":
@@ -708,13 +730,18 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 	{
 		String msg = Text.standardize(e.getMessageNode().getValue());
 
-		if (msg.equalsIgnoreCase("you have been kicked from the channel.") || msg.contains("decided to start the raid without you. sorry.")
-			|| msg.equalsIgnoreCase("you are no longer eligible to lead the party.") || msg.equalsIgnoreCase("the raid has begun!"))
+		if (msg.equalsIgnoreCase("you have been kicked from the channel.")
+			|| msg.equalsIgnoreCase("You have left the channel.")
+			|| msg.contains("decided to start the raid without you. sorry.")
+			|| msg.equalsIgnoreCase("you are no longer eligible to lead the party.")
+			|| msg.equalsIgnoreCase("Congratulations - your raid is complete!")
+			|| (!config.instanceTimerInRaid() && msg.equalsIgnoreCase("the raid has begun!")))
 		{
 			instanceTimer = 5;
 			isInstanceTimerRunning = false;
 		}
-		else if (msg.equalsIgnoreCase("inviting party...") || msg.equalsIgnoreCase("your party has entered the dungeons! come and join them now."))
+		else if (msg.equalsIgnoreCase("inviting party...")
+			|| msg.equalsIgnoreCase("your party has entered the dungeons! come and join them now."))
 		{
 			instanceTimer = 5;
 			isInstanceTimerRunning = true;
@@ -776,7 +803,7 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 				}
 			}
 
-			List<NPC> npcs = client.getNpcs();
+			IndexedObjectSet<? extends NPC> npcs = client.getTopLevelWorldView().npcs();
 			inVangs = false;
 			for (NPC npc : npcs)
 			{
@@ -864,6 +891,19 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 			{
 				removeInfobox("Grubs");
 			}
+
+			if (config.instanceTimerSharing() && !hasRaidStarted && isInstanceTimerRunning && isRaidLeader && partyService.isInParty())
+			{
+				if (instanceTimerShareCooldown <= 1)
+				{
+					partyService.send(new PartyInstanceTimerSync(client.getLocalPlayer().getId(), instanceTimer));
+					instanceTimerShareCooldown = 20;
+				}
+				else
+				{
+					instanceTimerShareCooldown--;
+				}
+			}
 		}
 
 		if (isInstanceTimerRunning)
@@ -872,6 +912,45 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 			if (instanceTimer < 0)
 			{
 				instanceTimer = 3;
+			}
+		}
+	}
+
+	@Subscribe
+	public void onPartyInstanceTimerSync(PartyInstanceTimerSync e)
+	{
+		if (!config.instanceTimerSharing())
+		{
+			return;
+		}
+
+		if (partyService.getLocalMember().getMemberId() != e.getMemberId())
+		{
+			if (!isInstanceTimerRunning && inRaid && client.getFriendsChatManager() != null)
+			{
+				clientThread.invoke(() ->
+				{
+					int senderID = e.getPlayerID();
+					boolean senderVisible = false;
+
+					for (Player p : client.getTopLevelWorldView().players())
+					{
+						if (p.getId() == senderID)
+						{
+							senderVisible = true;
+							break;
+						}
+					}
+
+					if (!senderVisible)
+					{
+						return;
+					}
+
+					instanceTimer = e.getInstanceTimerValue() - 1;
+					if (instanceTimer < 0) instanceTimer = 3;
+					isInstanceTimerRunning = true;
+				});
 			}
 		}
 	}
@@ -997,10 +1076,11 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 				if (client.getLocalPlayer() != null)
 				{
 					WorldPoint wp = client.getLocalPlayer().getWorldLocation();
+					WorldView worldView = client.getTopLevelWorldView();
 
-					if (wp.getX() - client.getBaseX() == chestX && wp.getY() - client.getBaseY() == chestY)
+					if (wp.getX() - worldView.getBaseX() == chestX && wp.getY() - worldView.getBaseY() == chestY)
 					{
-						int grubs = client.getItemContainer(InventoryID.INVENTORY).count(ItemID.CAVERN_GRUBS);
+						int grubs = client.getItemContainer(InventoryID.INV).count(ItemID.RAIDS_THIEVINGCHEST_GRUBS);
 
 						int delta = grubs - previousGrubs;
 						totalGrubs += delta;
@@ -1051,8 +1131,8 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 	{
 		if (e.getActor().getName() != null && client.getLocalPlayer() != null && e.getActor().getName().equals(client.getLocalPlayer().getName()) && inRaid)
 		{
-			pickedHerb = e.getActor().getAnimation() == AnimationID.FARMING_HARVEST_HERB;
-			potMade = e.getActor().getAnimation() == AnimationID.HERBLORE_POTIONMAKING;
+			pickedHerb = e.getActor().getAnimation() == AnimationID.PICKING_LOW;
+			potMade = e.getActor().getAnimation() == AnimationID.HUMAN_HERBING_VIAL;
 		}
 	}
 
@@ -1061,17 +1141,17 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 	{
 		if (inRaid)
 		{
-			int nox = e.getItemContainer().count(ItemID.GRIMY_NOXIFER) + e.getItemContainer().count(ItemID.NOXIFER);
-			int golpar = e.getItemContainer().count(ItemID.GRIMY_GOLPAR) + e.getItemContainer().count(ItemID.GOLPAR);
-			int buchus = e.getItemContainer().count(ItemID.GRIMY_BUCHU_LEAF) + e.getItemContainer().count(ItemID.BUCHU_LEAF);
-			int brews = e.getItemContainer().count(ItemID.XERICS_AID_4_20984);
-			int revites = e.getItemContainer().count(ItemID.REVITALISATION_4_20960);
-			int enhances = e.getItemContainer().count(ItemID.PRAYER_ENHANCE_4_20972);
-			int elders = e.getItemContainer().count(ItemID.ELDER_4_20924);
-			int twisteds = e.getItemContainer().count(ItemID.TWISTED_4_20936);
-			int kodais = e.getItemContainer().count(ItemID.KODAI_4_20948);
-			int overloads = e.getItemContainer().count(ItemID.OVERLOAD_4_20996);
-			int grubs = e.getItemContainer().count(ItemID.CAVERN_GRUBS);
+			int nox = e.getItemContainer().count(ItemID.RAIDS_GRIMY_NOXIFER) + e.getItemContainer().count(ItemID.RAIDS_NOXIFER);
+			int golpar = e.getItemContainer().count(ItemID.RAIDS_GRIMY_GOLPAR) + e.getItemContainer().count(ItemID.RAIDS_GOLPAR);
+			int buchus = e.getItemContainer().count(ItemID.RAIDS_GRIMY_BUCHULEAF) + e.getItemContainer().count(ItemID.RAIDS_BUCHULEAF);
+			int brews = e.getItemContainer().count(ItemID.RAIDS_VIAL_XERICAID_STRONG_4);
+			int revites = e.getItemContainer().count(ItemID.RAIDS_VIAL_REVITALISATION_STRONG_4);
+			int enhances = e.getItemContainer().count(ItemID.RAIDS_VIAL_PRAYER_STRONG_4);
+			int elders = e.getItemContainer().count(ItemID.RAIDS_VIAL_ELDER_STRONG_4);
+			int twisteds = e.getItemContainer().count(ItemID.RAIDS_VIAL_TWISTED_STRONG_4);
+			int kodais = e.getItemContainer().count(ItemID.RAIDS_VIAL_KODAI_STRONG_4);
+			int overloads = e.getItemContainer().count(ItemID.RAIDS_VIAL_OVERLOAD_STRONG_4);
+			int grubs = e.getItemContainer().count(ItemID.RAIDS_THIEVINGCHEST_GRUBS);
 
 			if (e.getContainerId() == 93) //Inventory
 			{
@@ -1133,9 +1213,9 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 				inventoryTwisteds = twisteds;
 				inventoryKodais = kodais;
 				inventoryOverloads = overloads;
-				pickedJuice = e.getItemContainer().count(ItemID.ENDARKENED_JUICE);
-				pickedShrooms = e.getItemContainer().count(ItemID.STINKHORN_MUSHROOM);
-				pickedCicely = e.getItemContainer().count(ItemID.CICELY);
+				pickedJuice = e.getItemContainer().count(ItemID.RAIDS_ENDARKENED_JUICE);
+				pickedShrooms = e.getItemContainer().count(ItemID.RAIDS_STINKHORN_MUSHROOM);
+				pickedCicely = e.getItemContainer().count(ItemID.RAIDS_CICELY);
 
 				previousGrubs = grubs;
 			}
@@ -1177,23 +1257,23 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 
 			switch (id)
 			{
-				case NpcID.GREAT_OLM_LEFT_CLAW:
-				case NpcID.GREAT_OLM_LEFT_CLAW_7555:
+				case NpcID.OLM_HAND_LEFT_SPAWNING:
+				case NpcID.OLM_HAND_LEFT:
 					meleeHand = npc;
 					break;
-				case NpcID.GREAT_OLM_RIGHT_CLAW:
-				case NpcID.GREAT_OLM_RIGHT_CLAW_7553:
+				case NpcID.OLM_HAND_RIGHT_SPAWNING:
+				case NpcID.OLM_HAND_RIGHT:
 					mageHand = npc;
 					break;
-				case NpcID.ICE_DEMON:
+				case NpcID.RAIDS_ICEDEMON_NONCOMBAT:
 					iceDemon = npc;
 					break;
-				case NpcID.MUTTADILE_7562: //Baby muttadile
+				case NpcID.RAIDS_DOGODILE_JUNIOR: //Baby muttadile
 					smallMuttaAlive = true;
 					smallMutta = npc;
 					break;
-				case NpcID.MUTTADILE: //Big muttadile in water
-				case NpcID.MUTTADILE_7563: //Big muttadile
+				case NpcID.RAIDS_DOGODILE_SUBMERGED: //Big muttadile in water
+				case NpcID.RAIDS_DOGODILE: //Big muttadile
 					bigMutta = npc;
 					break;
 			}
@@ -1204,11 +1284,11 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 				{
 					olmHead = npc;
 					olmSpawned = true;
-					if (id == NpcID.GREAT_OLM)
+					if (id == NpcID.OLM_HEAD_SPAWNING)
 					{
 						olmTile = npc.getLocalLocation();
 					}
-					else if (id == NpcID.GREAT_OLM_7554)
+					else if (id == NpcID.OLM_HEAD)
 					{
 						olmTile = null;
 					}
@@ -1228,8 +1308,8 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 
 			switch (id)
 			{
-				case NpcID.GREAT_OLM_LEFT_CLAW:
-				case NpcID.GREAT_OLM_LEFT_CLAW_7555:
+				case NpcID.OLM_HAND_LEFT_SPAWNING:
+				case NpcID.OLM_HAND_LEFT:
 					meleeHand = null;
 					if (npc.isDead())
 					{
@@ -1242,8 +1322,8 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 						meleeHandLastRatio = 100;
 					}
 					break;
-				case NpcID.GREAT_OLM_RIGHT_CLAW:
-				case NpcID.GREAT_OLM_RIGHT_CLAW_7553:
+				case NpcID.OLM_HAND_RIGHT_SPAWNING:
+				case NpcID.OLM_HAND_RIGHT:
 					mageHand = null;
 					if (npc.isDead())
 					{
@@ -1256,17 +1336,17 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 						mageHandLastRatio = 100;
 					}
 					break;
-				case NpcID.ICE_DEMON:
+				case NpcID.RAIDS_ICEDEMON_NONCOMBAT:
 					iceDemon = null;
 					break;
-				case NpcID.MUTTADILE_7562: //Baby muttadile
+				case NpcID.RAIDS_DOGODILE_JUNIOR: //Baby muttadile
 					smallMuttaAlive = false;
 					smallMutta = null;
 					lastHealthScale = 0;
 					lastRatio = 0;
 					break;
-				case NpcID.MUTTADILE: //Big muttadile in water
-				case NpcID.MUTTADILE_7563: //Big muttadile
+				case NpcID.RAIDS_DOGODILE_SUBMERGED: //Big muttadile in water
+				case NpcID.RAIDS_DOGODILE: //Big muttadile
 					bigMutta = null;
 					bigMuttaLastHealthScale = 0;
 					bigMuttaLastRatio = 0;
@@ -1279,7 +1359,7 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 				{
 					olmHead = null;
 					olmSpawned = false;
-					if (id == NpcID.GREAT_OLM)
+					if (id == NpcID.OLM_HEAD_SPAWNING)
 					{
 						olmTile = null;
 					}
@@ -1301,7 +1381,7 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 			NPC npc = e.getNpc();
 			int id = npc.getId();
 
-			if (id == NpcID.GREAT_OLM_7554)
+			if (id == NpcID.OLM_HEAD)
 			{
 				olmTile = null;
 			}
@@ -1348,11 +1428,12 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 	@Subscribe
 	public void onNpcLootReceived(NpcLootReceived e)
 	{
+		// This no longer works due to pots dropping for everyone
 		if (e.getNpc().getName() != null && e.getNpc().getName().equalsIgnoreCase("vanguard") && inRaid && client.getLocalPlayer() != null)
 		{
 			for (ItemStack item : e.getItems())
 			{
-				if (item.getId() == ItemID.OVERLOAD_4_20996)
+				if (item.getId() == ItemID.RAIDS_VIAL_OVERLOAD_STRONG_4)
 				{
 					if (partyService.isInParty())
 					{
@@ -1440,9 +1521,10 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 	@Subscribe
 	public void onClientTick(ClientTick e)
 	{
+		Menu menu = client.getMenu();
 		if (client.getGameState() == GameState.LOGGED_IN && !client.isMenuOpen())
 		{
-			MenuEntry[] menuEntries = client.getMenuEntries();
+			MenuEntry[] menuEntries = menu.getMenuEntries();
 			int idx = 0;
 			optionIndexes.clear();
 
@@ -1458,7 +1540,7 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 				swapMenuEntry(idx++, entry);
 			}
 		}
-		client.setMenuEntries(updateMenuEntries(client.getMenuEntries()));
+		menu.setMenuEntries(updateMenuEntries(menu.getMenuEntries()));
 	}
 
 	public int getMaxEnhanceCycles()
@@ -1474,7 +1556,9 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 	@Subscribe
 	public void onVarbitChanged(VarbitChanged e)
 	{
-		inRaid = client.getVarbitValue(Varbits.IN_RAID) == 1;
+		inRaid = client.getVarbitValue(VarbitID.RAIDS_CLIENT_INDUNGEON) == 1;
+		hasRaidStarted = client.getVarbitValue(VarbitID.RAIDS_CLIENT_PROGRESS) > 0;
+		isRaidLeader = client.getVarbitValue(VarbitID.RAIDS_CLIENT_ISLEADER) == 1;
 
 		if (inRaid)
 		{
@@ -1505,11 +1589,11 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 			}
 			else
 			{
-				if (client.getVarpValue(VarPlayer.HP_HUD_NPC_ID) == 7555)
+				if (client.getVarpValue(VarPlayerID.HPBAR_HUD_NPC) == 7555)
 				{
 					meleeHandHp = client.getVarbitValue(6099);
 				}
-				else if (client.getVarpValue(VarPlayer.HP_HUD_NPC_ID) == 7553)
+				else if (client.getVarpValue(VarPlayerID.HPBAR_HUD_NPC) == 7553)
 				{
 					mageHandHp = client.getVarbitValue(6099);
 				}
@@ -1619,19 +1703,19 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 
 				switch (p.getId())
 				{
-					case 1341: //Mage Orb
+					case SpotanimID.OLM_WEAK_MAGE_PROJ:
 					{
-						newID = 2208; //Warden Blue Orb
+						newID = SpotanimID.TOA_WARDENS_PRAYER_MAGIC_TRAVEL;
 						break;
 					}
-					case 1343: //Range Orb
+					case SpotanimID.OLM_WEAK_RANGE_PROJ:
 					{
-						newID = 2206; //Warden White Arrow
+						newID = SpotanimID.TOA_WARDENS_PRAYER_RANGED_TRAVEL;
 						break;
 					}
-					case 1345: //Melee Orb
+					case SpotanimID.OLM_WEAK_MELEE_PROJ:
 					{
-						newID = 2204; //Warden Red Sword
+						newID = SpotanimID.TOA_WARDENS_PRAYER_MELEE_TRAVEL;
 						break;
 					}
 				}
@@ -1640,14 +1724,16 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 				{
 					Projectile orb = client.createProjectile(
 						newID,
-						p.getFloor(),
-						p.getX1(), p.getY1(),
-						p.getHeight(),
-						p.getStartCycle(), p.getEndCycle(),
+						p.getSourcePoint(),
+						p.getStartHeight(),
+						p.getSourceActor(),
+						p.getTargetPoint(),
+						p.getEndHeight(),
+						p.getTargetActor(),
+						p.getStartCycle(),
+						p.getEndCycle(),
 						p.getSlope(),
-						p.getStartHeight(), p.getEndHeight(),
-						p.getInteracting(),
-						p.getTarget().getX(), p.getTarget().getY());
+						p.getStartPos());
 
 					client.getProjectiles().addLast(orb);
 					p.setEndCycle(0);
@@ -1668,7 +1754,7 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 
 	private void swap(String optionA, String optionB, String target, int index, boolean strict)
 	{
-		MenuEntry[] menuEntries = client.getMenuEntries();
+		MenuEntry[] menuEntries = client.getMenu().getMenuEntries();
 		int thisIndex = findIndex(menuEntries, index, optionB, target, strict);
 		int optionIdx;
 
@@ -1736,7 +1822,7 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 			entry2.setType(MenuAction.CC_OP);
 		}
 
-		client.setMenuEntries(entries);
+		client.getMenu().setMenuEntries(entries);
 		optionIndexes.clear();
 		int idx = 0;
 		for (MenuEntry menuEntry : entries)
@@ -1785,7 +1871,7 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 				if (enhanceInfobox == null && config.detailedPrayerEnhance() != CoxAdditionsConfig.enhanceMode.OFF)
 				{
 					enhanceInfobox = new EnhanceInfobox(client, this, config);
-					img = ItemID.PRAYER_ENHANCE_4_20972;
+					img = ItemID.RAIDS_VIAL_PRAYER_STRONG_4;
 					enhanceInfobox.setImage(itemManager.getImage(img));
 					infoBoxManager.addInfoBox(enhanceInfobox);
 				}
@@ -1797,7 +1883,7 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 						(config.grubsInfobox() == CoxAdditionsConfig.grubsMode.BOTH && (inThieving || inPrep)))
 					{
 						grubsInfobox = new GrubsInfobox(client, this, config);
-						img = ItemID.CAVERN_GRUBS;
+						img = ItemID.RAIDS_THIEVINGCHEST_GRUBS;
 						grubsInfobox.setImage(itemManager.getImage(img));
 						infoBoxManager.addInfoBox(grubsInfobox);
 					}
@@ -1827,7 +1913,7 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 	{
 		if (client.getGameState() == GameState.LOGGED_IN && inRaid)
 		{
-			int chunkData = client.getInstanceTemplateChunks()[z][x / 8][y / 8];
+			int chunkData = client.getTopLevelWorldView().getInstanceTemplateChunks()[z][x / 8][y / 8];
 			return InstanceTemplates.findMatch(chunkData);
 		}
 		return null;
@@ -1836,7 +1922,7 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 	public InstanceTemplates room()
 	{
 		return getCurrentRoom(client.getLocalPlayer().getLocalLocation().getSceneX(),
-			client.getLocalPlayer().getLocalLocation().getSceneY(), client.getPlane());
+			client.getLocalPlayer().getLocalLocation().getSceneY(), client.getTopLevelWorldView().getPlane());
 	}
 
 	public void loadFont(boolean overlay)
@@ -1855,7 +1941,7 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 					overlayFont = FontManager.getRunescapeBoldFont();
 					break;
 				case CUSTOM:
-					if (!config.overlayFontName().equals(""))
+					if (!config.overlayFontName().isEmpty())
 					{
 						overlayFont = new Font(config.overlayFontName(), config.overlayFontWeight().getWeight(), config.overlayFontSize());
 					}
@@ -1876,7 +1962,7 @@ public class CoxAdditionsPlugin extends Plugin implements KeyListener
 					panelFont = FontManager.getRunescapeBoldFont();
 					break;
 				case CUSTOM:
-					if (!config.panelFontName().equals(""))
+					if (!config.panelFontName().isEmpty())
 					{
 						panelFont = new Font(config.panelFontName(), config.panelFontWeight().getWeight(), config.panelFontSize());
 					}

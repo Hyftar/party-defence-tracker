@@ -34,7 +34,10 @@ public class InstanceTimerOverlay extends OverlayPanel
 		}
 
 		panelComponent.getChildren().clear();
-		if (config.instanceTimer() == CoxAdditionsConfig.instanceTimerMode.INFOBOX && plugin.isInstanceTimerRunning() && plugin.isInRaid())
+		if ((config.instanceTimer() == CoxAdditionsConfig.instanceTimerMode.INFOBOX
+			|| config.instanceTimer() == CoxAdditionsConfig.instanceTimerMode.BOTH)
+			&& plugin.isInstanceTimerRunning()
+			&& plugin.isInRaid())
 		{
 			Color goodTick = new Color(37, 197, 79);
 			Color badTick = new Color(224, 60, 49);
