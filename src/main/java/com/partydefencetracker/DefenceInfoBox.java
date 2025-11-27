@@ -17,20 +17,29 @@ public class DefenceInfoBox extends InfoBox
     private final DefenceTrackerConfig config;
 
     @Getter
-    @Setter
-    private long count;
+    private final long minimumDefence;
 
-    public DefenceInfoBox(BufferedImage image, Plugin plugin, long count, DefenceTrackerConfig config)
+    @Getter
+    @Setter
+    private long currentDefence;
+
+    public DefenceInfoBox(BufferedImage image, Plugin plugin, long minimumDefence, long currentDefence, DefenceTrackerConfig config)
     {
         super(image, plugin);
-        this.count = count;
+        this.currentDefence = currentDefence;
+        this.minimumDefence = minimumDefence;
         this.config = config;
     }
 
     @Override
     public String getText()
     {
-        return Long.toString(getCount());
+        long displayedDefence =
+            config.displayFullDefenceLevel()
+                ? currentDefence
+                : currentDefence - minimumDefence;
+
+        return Long.toString(displayedDefence);
     }
 
     @Override
@@ -40,20 +49,19 @@ public class DefenceInfoBox extends InfoBox
 		{
 			return Color.WHITE;
 		}
-		else
-		{
-			if (count == 0)
-			{
-				return config.cappedDefColor();
-			}
-			else if (count >= 1 && count <= config.lowDef())
-			{
-				return config.lowDefColor();
-			}
-			else
-			{
-				return config.highDefColor();
-			}
-		}
+
+        long relativeDefence = Math.max(currentDefence - minimumDefence, 0);
+
+        if (relativeDefence == 0)
+        {
+            return config.cappedDefColor();
+        }
+
+        if (relativeDefence <= config.lowDef())
+        {
+            return config.lowDefColor();
+        }
+
+        return config.highDefColor();
     }
 }

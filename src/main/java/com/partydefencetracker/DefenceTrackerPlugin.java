@@ -724,39 +724,47 @@ public class DefenceTrackerPlugin extends Plugin
 				break;
 		}
 
-		if (boss.equalsIgnoreCase("Sotetseg") && bossDef < 100)
-		{
-			bossDef = 100;
-		}
-		else if (boss.equalsIgnoreCase("Yama") && bossDef < 145)
-		{
-			bossDef = 145;
-		}
-		else if (bossDef < 0)
-		{
-			bossDef = 0;
-		}
+		BossInfo bossInfo = BossInfo.getBoss(boss);
+
+		bossDef = Math.max(bossDef, (bossInfo != null ? bossInfo.getMinDef() : 0));
 	}
 
 	private void calculateQueue(int index)
 	{
-		if (queuedNpc != null)
+        if (queuedNpc == null)
 		{
-			if (queuedNpc.index == index)
-			{
-				for (QueuedNpc.QueuedSpec spec : queuedNpc.queuedSpecs)
-				{
-					calculateDefence(spec.weapon, spec.hit);
-				}
-			}
+            return;
+        }
+
+        if (queuedNpc.index != index)
+		{
 			queuedNpc = null;
+			return;
 		}
-	}
+
+		for (QueuedNpc.QueuedSpec spec : queuedNpc.queuedSpecs)
+		{
+			calculateDefence(spec.weapon, spec.hit);
+		}
+
+        queuedNpc = null;
+    }
 
 	private void updateDefInfobox()
 	{
 		infoBoxManager.removeInfoBox(box);
-		box = new DefenceInfoBox(skillIconManager.getSkillImage(Skill.DEFENCE), this, Math.round(bossDef), config);
+
+		BossInfo bossInfo = BossInfo.getBoss(boss);
+
+		box =
+			new DefenceInfoBox(
+				skillIconManager.getSkillImage(Skill.DEFENCE),
+				this,
+				(bossInfo != null ? Math.round(bossInfo.getMinDef()) : 0),
+				Math.round(bossDef),
+				config
+			);
+
 		box.setTooltip(ColorUtil.wrapWithColorTag(boss, Color.WHITE));
 		infoBoxManager.addInfoBox(box);
 	}
