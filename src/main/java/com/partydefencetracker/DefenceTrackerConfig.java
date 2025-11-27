@@ -116,4 +116,12 @@ public interface DefenceTrackerConfig extends Config
 	{
 		return true;
 	}
+
+	@ConfigItem(
+			name = "Display full defence level",
+			keyName = "displayFullDefence",
+			description = "For NPCs with a minimum defence, display their full defence level instead of the reduction relative to their minimum",
+			position = 9
+	)
+	default boolean displayFullDefenceLevel() { return false; }
 }
