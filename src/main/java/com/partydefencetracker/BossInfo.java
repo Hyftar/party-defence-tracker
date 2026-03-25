@@ -57,10 +57,10 @@ enum BossInfo
 	VENENATIS("Venenatis", 321, 300, 0),
 	VETION("Vet'ion", 395, 300, 0),
 	VORKATH("Vorkath", 214, 150, 0),
-	XARPUS("Xarpus", 250, 22, 0),
+	XARPUS("Xarpus", 250, 220, 0),
 	YAMA("Yama", 225, 250, 145),
 	ZEBAK("Zebak", 70, 100, 50),
-	ZULRAH("Zulrah", 300, 30, 0);
+	ZULRAH("Zulrah", 300, 300, 0);
 
 	@Getter
 	private final String name;
