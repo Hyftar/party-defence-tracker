@@ -719,7 +719,7 @@ public class DefenceTrackerPlugin extends Plugin
 			case TONALZTICS_OF_RALOS:
 				for (int i = 0; i < hit; i++)
 				{
-					bossDef -= (int) (getScaledMagicLevel() * .1);
+					bossDef -= (int) (getScaledMagicLevel() * .125);
 				}
 				break;
 		}
