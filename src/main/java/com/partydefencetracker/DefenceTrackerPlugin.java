@@ -478,10 +478,13 @@ public class DefenceTrackerPlugin extends Plugin
 	{
 		if (event.getType() == ChatMessageType.FRIENDSCHATNOTIFICATION)
 		{
-			if (Text.removeTags(event.getMessage()).equals("The raid has begun!") && client.getVarbitValue(Varbits.IN_RAID) == 1)
+			String message = Text.removeTags(event.getMessage());
+
+			if (message.contains("Map Layout:") && client.getVarbitValue(Varbits.IN_RAID) == 1)
 			{
-				// Determine if in challege mode or regular
-				inCm = layoutSolver.isCM();
+				// require the server's own "Challenge Mode" text before trusting.				// layoutSolver.isCM()' room-layout match alone unreliable -
+
+				inCm = layoutSolver.isCM() && message.contains("Challenge Mode");
 				coxModeSet = true;
 			}
 		}
