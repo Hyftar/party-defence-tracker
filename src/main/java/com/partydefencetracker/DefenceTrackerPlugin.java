@@ -185,7 +185,7 @@ public class DefenceTrackerPlugin extends Plugin
 		put("Zulrah", new ArrayList<>(Arrays.asList(9007, 9008)));
 	}};
 
-	private final Set<String> coxBosses = new HashSet<>(List.of("Abyssal portal", "Deathly mage", "Deathly ranger", "Great Olm", "Great Olm (Left claw)", "Great Olm (Right claw", "Ice demon", "Skeletal Mystic", "Tekton", "Vasa Nistirio", "Lizardman shaman"));
+	private final Set<String> coxBosses = new HashSet<>(List.of("Abyssal portal", "Deathly mage", "Deathly ranger", "Great Olm", "Great Olm (Left claw)", "Great Olm (Right claw)", "Ice demon", "Skeletal Mystic", "Tekton", "Vasa Nistirio", "Lizardman shaman"));
   	private final Set<String> coxBossesSpecialOffensiveScaling = new HashSet<>(List.of("Abyssal portal", "Deathly ranger"));
 
 	@Provides
