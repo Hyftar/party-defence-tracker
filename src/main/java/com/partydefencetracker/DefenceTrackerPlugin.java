@@ -651,13 +651,10 @@ public class DefenceTrackerPlugin extends Plugin
 				}
 				break;
 			case BANDOS_GODSWORD:
-				if (hit == 0)
+				if (client.getVarbitValue(Varbits.IN_RAID) == 1 && boss.equalsIgnoreCase("Tekton"))
 				{
-					if (client.getVarbitValue(Varbits.IN_RAID) == 1 && boss.equalsIgnoreCase("Tekton"))
-					{
-						bossDef -= 10;
-					}
-				}
+					bossDef -= Math.max(10, hit);
+				} 
 				else
 				{
 					if (boss.equalsIgnoreCase("Corporeal Beast") || (inBossRegion() && boss.equalsIgnoreCase("Pestilent Bloat") && !bloatDown))
